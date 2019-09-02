@@ -1,0 +1,125 @@
+Import dataset from the following link: AirQuality Data Set (https://archive.ics.uci.edu/ml/datasets/Air+quality)
+Perform the following written operations:
+1. Read the file in Zip format and get it into R.
+
+z <- unz('D:/R/AirQualityUCI.zip', 'AirQualityUCI.csv')
+AirQualityUCI <- read.table(z, header=TRUE,sep = ";") 
+View(AirQualityUCI)
+dim(AirQualityUCI)
+str(AirQualityUCI)
+summary(AirQualityUCI)
+
+2. Create Univariate for all the columns.
+
+library(Publish)
+AirQualityUCI[AirQualityUCI==-200.0]<-NA
+for(i in 1:ncol(AirQualityUCI)){AirQualityUCI[is.na(AirQualityUCI[,i]),i] <- mean(AirQualityUCI[,i], na.rm = TRUE)}
+summary(AirQualityUCI)
+AirQualityUCI[7:14,]
+hist(AirQualityUCI$NOx.GT.,col="Green")
+dotchart(AirQualityUCI$PT08.S2.NMHC.,labels = row.names(AirQualityUCI$PT08.S1.CO.),cex=0.5, color = "blue")
+pairs(AirQualityUCI[7:14])
+univariateTable(~Date +Time + CO.GT. + PT08.S1.CO.+ NMHC.GT.+ C6H6.GT.+ PT08.S2.NMHC.+ NOx.GT.+ PT08.S3.NOx. ,data=AirQualityUCI)
+
+
+3. Check for missing values in all columns.
+
+library(mice)
+# pattern or missing values in data.
+md.pattern(AirQualityUCI)  
+str(AirQualityUCI)
+is.na(AirQualityUCI)
+library(Amelia)
+library(mlbench)
+# create a missing map
+missmap(AirQualityUCI, col=c("black", "grey"), legend=FALSE)
+# Number of missing per column/variable
+colSums(is.na(AirQualityUCI))   
+
+
+4. Impute the missing values using appropriate methods.
+
+# Number of missing per column/variable
+colSums(is.na(AirQualityUCI))   
+#filling the missing values by NA
+library(plyr)
+AirQualityUCI[AirQualityUCI==-200.0]<-NA
+#Replacing the NA by mean of each columns
+for(i in 1:ncol(AirQualityUCI)){
+  AirQualityUCI[is.na(AirQualityUCI[,i]),i] <- mean(AirQualityUCI[,i], na.rm = TRUE)}
+summary(AirQualityUCI)
+
+5. Create bi-variate analysis for all relationships.
+
+summary(AirQualityUCI)
+plot(AirQualityUCI$NOx.GT.~AirQualityUCI$PT08.S2.NMHC.)
+plot(AirQualityUCI$PT08.S1.CO.~AirQualityUCI$PT08.S3.NOx.)
+plot(AirQualityUCI$NO2.GT.~AirQualityUCI$PT08.S4.NO2.)
+plot(AirQualityUCI$PT08.S5.O3.~AirQualityUCI$T)
+
+6. Test relevant hypothesis for valid relations.
+
+plot(AirQualityUCI$PT08.S1.CO.,AirQualityUCI$T)
+lm(formula=AirQualityUCI$PT08.S3.NOx.~AirQualityUCI$NOx.GT.)
+lm(formula = AirQualityUCI$PT08.S1.CO.~AirQualityUCI$T)
+lm(formula = AirQualityUCI$NMHC.GT.~AirQualityUCI$PT08.S2.NMHC.)
+plot(AirQualityUCI$PT08.S5.O3.,AirQualityUCI$NOx.GT.)
+lm(formula =AirQualityUCI$PT08.S5.O3.~AirQualityUCI$NOx.GT.)
+pnorm(1.49)
+pnorm(1.097)
+qnorm(0.9318879)
+qnorm(0.8636793)
+library(car)
+mod=lm(AirQualityUCI$PT08.S5.O3. ~ AirQualityUCI$NOx.GT.)
+summary(mod)
+predict(mod)
+
+
+7. Create cross tabulations with derived variables.
+
+mydata<-AirQualityUCI
+View(mydata)
+# 2-Way Frequency Table 
+attach(mydata)
+# A will be rows, B will be columns 
+mytable <- table(A,B) 
+mytable # print table 
+# A frequencies (summed over B) 
+margin.table(mytable, 1) 
+# B frequencies (summed over A)
+margin.table(mytable, 2) 
+# cell percentages
+prop.table(mytable) 
+# row percentages 
+prop.table(mytable, 1) 
+# column percentages
+prop.table(mytable, 2) 
+
+
+8. Check for trends and patterns in time series.
+
+# frequency 4 => Quarterly Data
+ts (AirQualityUCI, frequency = 4, start = c(1959, 2)) 
+# freq 12 => Monthly data. 
+ts (1:10, frequency = 12, start = 1990) 
+# Yearly Data
+ts (AirQualityUCI, start=c(2009), end=c(2014), frequency=1) 
+ts (1:1000, frequency = 365, start = 1990)# freq 365 => daily data.
+tsAirqualityUCI <- EuStockMarkets[, 1] 
+
+#plot time series
+tsAirqualityUCI <- EuStockMarkets[, 1] # ts data
+decomposedRes <- decompose(tsAirqualityUCI, type="mult") # use type = "additive" for additive components
+plot (decomposedRes)
+
+
+9. Find out the most polluted time of the day and the name of the chemical compound.
+
+#plot time series
+# ts data
+tsAirqualityUCI <- EuStockMarkets[, 1] 
+# use type = "additive" for additive components
+decomposedRes <- decompose(tsAirqualityUCI, type="mult") 
+plot (decomposedRes) # see plot below
+stlRes <- stl(tsAirqualityUCI, s.window = "periodic")
+plot(AirQualityUCI$T, type = "l")
